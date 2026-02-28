@@ -117,7 +117,6 @@ def approve_company(company_id, name):
     if company:
         company.approval_status = 'approved'
         db.session.commit()
-        flash(f"{company.company_name} approved successfully!", "success")
     return redirect(url_for('admin_dashboard', name=name))
 
 @app.route("/admin/reject/company/<int:company_id>/<name>")
@@ -126,7 +125,6 @@ def reject_company(company_id, name):
     if company:
         company.approval_status = 'rejected'
         db.session.commit()
-        flash(f"{company.company_name} rejected.", "danger")
     return redirect(url_for('admin_dashboard', name=name))
 
 @app.route("/admin/blacklist/company/<int:company_id>/<name>")
