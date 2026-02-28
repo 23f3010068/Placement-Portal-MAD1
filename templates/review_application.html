@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Review Application</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-dark text-white">
+                        <h4 class="mb-0">Review Application</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <p><strong>Student Name:</strong> {{ application.student.full_name }}</p>
+                            <p><strong>Department:</strong> {{ application.student.department }}</p>
+                            <p><strong>Applied For (Job Title):</strong> {{ application.drive.job_title }}</p>
+                            <p><strong>Drive Name:</strong> {{ application.drive.drive_name }}</p>
+                            <p><strong>Current Status:</strong> <span class="badge bg-secondary">{{ application.status
+                                    }}</span></p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-top pt-4">
+                            
+                            {% if application.student.resume %}
+                            <a href="/static/uploads/{{ application.student.resume }}" target="_blank"
+                                class="btn btn-outline-primary">
+                                <i class="fas fa-file-pdf"></i> View Resume
+                            </a>
+                            {% else %}
+                            <span class="text-muted">No Resume Uploaded</span>
+                            {% endif %}
+
+                            <form action="/company/application/update/{{ application.id }}/{{ company_id }}"
+                                method="POST" class="d-flex align-items-center gap-2">
+                                <select name="status" class="form-select">
+                                    <option value="waiting" {% if application.status=='waiting' %}selected{% endif %}>
+                                        Waiting</option>
+                                    <option value="shortlisted" {% if application.status=='shortlisted' %}selected{%
+                                        endif %}>Shortlisted</option>
+                                    <option value="rejected" {% if application.status=='rejected' %}selected{% endif %}>
+                                        Rejected</option>
+                                </select>
+                                <button type="submit" class="btn btn-success">Update</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-footer text-end">
+                        <a href="/company/drive/{{ application.drive.id }}/{{ company_id }}"
+                            class="btn btn-link text-decoration-none">Back to List</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

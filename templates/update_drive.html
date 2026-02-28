@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Update Drive</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Update & Re-post Drive</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="/company/drive/update/{{ drive.id }}/{{ company_id }}" method="POST">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Drive Name</label>
+                                <input type="text" name="drive_name" class="form-control" value="{{ drive.drive_name }}"
+                                    required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Job Title</label>
+                                <input type="text" name="job_title" class="form-control" value="{{ drive.job_title }}"
+                                    required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Job Description</label>
+                                <textarea name="job_description" class="form-control" rows="3"
+                                    required>{{ drive.job_description }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Eligibility Criteria</label>
+                                <input type="text" name="eligibility" class="form-control"
+                                    value="{{ drive.eligibility_criteria }}" required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Salary</label>
+                                    <input type="text" name="salary" class="form-control" value="{{ drive.salary }}"
+                                        required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Application Deadline</label>
+                                    <input type="date" name="deadline" class="form-control"
+                                        value="{{ drive.application_deadline }}" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Location</label>
+                                <input type="text" name="location" class="form-control" value="{{ drive.location }}"
+                                    required>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <small><i class="fas fa-info-circle"></i> This drive will be automatically approved and published</small>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="/company/dashboard/{{ company_id }}" class="btn btn-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-info text-white px-4">Update & Post</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

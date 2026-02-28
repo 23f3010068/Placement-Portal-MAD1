@@ -91,22 +91,8 @@ def register_company():
             return render_template("register_company.html", msg="Error registering company")
     return render_template("register_company.html")
 
-@app.route("/admin/dashboard/<name>")
-def admin_dashboard(name):
-    companies = Company.query.all()
-    pending_companies = Company.query.filter_by(approval_status='pending').all()
-    students = Student.query.all()
-    ongoing_drives = Drive.query.filter(Drive.status.in_(['approved'])).all()
-    student_applications = Application.query.order_by(Application.application_date.desc()).limit(20).all()
 
-    return render_template("admin_dashboard.html",
-                           companies=companies,
-                           name=name,
-                           role="admin",  
-                           pending_companies=pending_companies,
-                           students=students,
-                           ongoing_drives=ongoing_drives,
-                           student_applications=student_applications)
+
 
 @app.route("/admin/dashboard/<name>")
 def admin_dashboard(name):
@@ -177,3 +163,106 @@ def admin_search():
                            ongoing_drives=[],
                            student_applications=[],
                            search_query=query) 
+
+
+
+@app.route("/company/dashboard/<int:company_id>")
+def company_dashboard(company_id):
+    company = Company.query.get_or_404(company_id)    
+    ongoing_drives = Drive.query.filter(
+        Drive.company_id == company_id, 
+        Drive.status.in_(['pending', 'approved'])).all()
+
+    closed_drives = Drive.query.filter_by(company_id=company_id, status='closed').all()    
+    return render_template("company_dashboard.html", 
+                           company=company, 
+                           ongoing_drives=ongoing_drives, 
+                           closed_drives=closed_drives)
+
+
+@app.route("/company/create_drive/<int:company_id>", methods=["GET", "POST"])
+def create_drive(company_id):
+    if request.method == "POST":
+        drive_name = request.form.get("drive_name")
+        job_title = request.form.get("job_title")
+        description = request.form.get("job_description")
+        eligibility = request.form.get("eligibility")
+        salary = request.form.get("salary")
+        location = request.form.get("location")
+        deadline_str = request.form.get("deadline")
+        deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
+        company = Company.query.get(company_id)
+        initial_status = 'approved' if company.approval_status == 'approved' else 'pending'
+
+        new_drive = Drive(
+            company_id=company_id,
+            drive_name=drive_name,
+            job_title=job_title,
+            job_description=description,
+            eligibility_criteria=eligibility,
+            salary=salary,
+            location=location,
+            application_deadline=deadline,
+            status=initial_status)
+        
+        db.session.add(new_drive)
+        db.session.commit()        
+        return redirect(url_for('company_dashboard', company_id=company_id))
+    return render_template("create_drive.html", company_id=company_id)
+
+
+
+@app.route("/company/drive/<int:drive_id>/<int:company_id>")
+def view_drive_details(drive_id, company_id):
+    drive = Drive.query.get_or_404(drive_id)
+    applications = Application.query.filter_by(drive_id=drive_id).all()    
+    return render_template("drive_info.html", 
+                           drive=drive, 
+                           applications=applications, 
+                           company_id=company_id)
+
+
+@app.route("/company/drive/complete/<int:drive_id>/<int:company_id>")
+def mark_drive_complete(drive_id, company_id):
+    drive = Drive.query.get(drive_id)
+    if drive:
+        drive.status = 'closed'
+        db.session.commit()    
+    return redirect(url_for('company_dashboard', company_id=company_id))
+
+
+@app.route("/company/application/review/<int:app_id>/<int:company_id>")
+def review_application_page(app_id, company_id):
+    application = Application.query.get_or_404(app_id)
+    
+    return render_template("review_application.html", 
+                           application=application, 
+                           company_id=company_id)
+
+
+@app.route("/company/application/update/<int:app_id>/<int:company_id>", methods=["POST"])
+def update_application_status(app_id, company_id):
+    application = Application.query.get_or_404(app_id)
+    new_status = request.form.get("status")
+    if new_status in ['shortlisted', 'rejected', 'waiting']:
+        application.status = new_status
+        db.session.commit()    
+    return redirect(url_for('view_drive_details', drive_id=application.drive_id, company_id=company_id))
+
+
+@app.route("/company/drive/update/<int:drive_id>/<int:company_id>", methods=["GET", "POST"])
+def update_drive(drive_id, company_id):
+    drive = Drive.query.get_or_404(drive_id)
+    if request.method == "POST":
+        drive.drive_name = request.form.get("drive_name")
+        drive.job_title = request.form.get("job_title")
+        drive.job_description = request.form.get("job_description")
+        drive.eligibility_criteria = request.form.get("eligibility")
+        drive.salary = request.form.get("salary")
+        drive.location = request.form.get("location")
+        deadline_str = request.form.get("deadline")
+        drive.application_deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
+        drive.status = 'approved'
+        db.session.commit()
+        return redirect(url_for('company_dashboard', company_id=company_id))
+    return render_template("update_drive.html", drive=drive, company_id=company_id)

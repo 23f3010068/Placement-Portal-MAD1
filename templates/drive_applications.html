@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="/company/dashboard" class="btn btn-outline-secondary btn-sm">Back</a>
+</div>
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h5>Manage Applications: {{ drive.job_title }}</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Received Applications:</strong></p>
+        <form action="/company/drive/{{ drive.id }}/update_applications" method="POST">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Department</th>
+                        <th>CGPA</th>
+                        <th>Resume</th>
+                        <th>Current Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in applications %}
+                    <tr>
+                        <td>{{ app.student.full_name }}</td>
+                        <td>{{ app.student.department }}</td>
+                        <td>{{ app.student.cgpa }}</td>
+                        <td>
+                            {% if app.student.resume %}
+                                <a href="{{ app.student.resume }}" target="_blank" class="btn btn-sm btn-info">View Resume</a>
+                            {% else %}
+                                <span class="text-muted">No Resume</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-secondary">{{ app.status }}</span></td>
+                        <td>
+                            <select name="status_{{ app.id }}" class="form-select form-select-sm">
+                                <option value="applied" {% if app.status == 'applied' %}selected{% endif %}>Applied</option>
+                                <option value="shortlisted" {% if app.status == 'shortlisted' %}selected{% endif %}>Shortlist</option>
+                                <option value="selected" {% if app.status == 'selected' %}selected{% endif %}>Select</option>
+                                <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Reject</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
