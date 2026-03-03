@@ -1,10 +1,21 @@
 import os
-from flask import render_template, request, url_for, redirect, flash
+from flask import render_template, request, url_for, redirect
 from flask import current_app as app
 from models.models import *
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from sqlalchemy import or_
+
+
+UPLOAD = 'static/uploads'
+EXTENSION = {'pdf'}
+if not os.path.exists(UPLOAD):
+    os.makedirs(UPLOAD)
+    
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in EXTENSION
+
+
 
 @app.route("/")
 def home():
@@ -264,3 +275,88 @@ def update_drive(drive_id, company_id):
         db.session.commit()
         return redirect(url_for('company_dashboard', company_id=company_id))
     return render_template("update_drive.html", drive=drive, company_id=company_id)
+
+
+
+
+@app.route("/student/dashboard/<int:student_id>")
+def student_dashboard(student_id):
+    student = Student.query.get_or_404(student_id)
+    companies = Company.query.filter_by(approval_status='approved').all()
+    applications = Application.query.filter_by(student_id=student_id).all()
+    return render_template("student_dashboard.html", 
+                           student=student, 
+                           companies=companies, 
+                           applications=applications)
+
+@app.route("/student/company/<int:company_id>/<int:student_id>")
+def student_company_details(company_id, student_id):
+    company = Company.query.get_or_404(company_id)
+    drives = Drive.query.filter_by(company_id=company_id, status='approved').all()
+    return render_template("company_details.html", 
+                           company=company, 
+                           drives=drives, 
+                           student_id=student_id)
+
+@app.route("/student/drive/<int:drive_id>/<int:student_id>")
+def student_drive_details(drive_id, student_id):
+    drive = Drive.query.get_or_404(drive_id)
+    existing_app = Application.query.filter_by(student_id=student_id, drive_id=drive_id).first()
+    has_applied = True if existing_app else False
+    return render_template("student_drive_details.html", 
+                           drive=drive, 
+                           student_id=student_id,
+                           has_applied=has_applied)
+
+@app.route("/student/apply/<int:drive_id>/<int:student_id>")
+def apply_for_drive(drive_id, student_id):
+    existing_app = Application.query.filter_by(student_id=student_id, drive_id=drive_id).first()
+    if existing_app:
+        print("You have already applied for this drive.")
+    else:
+        new_app = Application(
+            student_id=student_id,
+            drive_id=drive_id,
+            status='applied',
+            application_date=datetime.now())
+        db.session.add(new_app)
+        db.session.commit()
+        print("Application submitted successfully!")
+    return redirect(url_for('student_dashboard', student_id=student_id))
+
+@app.route("/student/history/<int:student_id>")
+def student_history(student_id):
+    applications = Application.query.filter_by(student_id=student_id).order_by(Application.application_date.desc()).all()
+    return render_template("student_history.html", applications=applications, student_id=student_id)
+
+@app.route("/student/profile/edit/<int:student_id>")
+def edit_student_profile(student_id):
+    student = Student.query.get_or_404(student_id)
+    return render_template("edit_profile.html", student=student)
+
+@app.route("/student/profile/update/<int:student_id>", methods=["POST"])
+def update_student_profile(student_id):
+    student = Student.query.get_or_404(student_id)
+    student.full_name = request.form.get("full_name")
+    student.department = request.form.get("department")
+    student.phone = request.form.get("phone")
+    if request.form.get("cgpa"):
+        student.cgpa = float(request.form.get("cgpa"))
+
+    if 'resume' in request.files:
+        file = request.files['resume']
+        
+        # Check if user selected a file
+        if file.filename != '': 
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                unique_filename = f"resume_{student.id}_{filename}"
+                save_path = os.path.join('static/uploads', unique_filename)
+                file.save(save_path)
+                student.resume = unique_filename
+                print(f"File saved successfully: {save_path}")
+            else:
+                print("Invalid file type or no file selected")
+    db.session.commit()
+    return redirect(url_for('student_dashboard', student_id=student_id))
+

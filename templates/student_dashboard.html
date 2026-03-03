@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Welcome, {{ student.full_name }}</span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#studentNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="studentNav">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center gap-2">
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light btn-sm" href="/student/profile/edit/{{ student.id }}">Edit Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-info btn-sm" href="/student/history/{{ student.id }}">History</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Companies Hiring</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Company Name</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if companies %}
+                                    {% for company in companies %}
+                                    <tr>
+                                        <td>{{ company.company_name }}</td>
+                                        <td class="text-end">
+                                            <a href="/student/company/{{ company.id }}/{{ student.id }}" 
+                                               class="btn btn-primary btn-sm">View Details</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="2" class="text-center text-muted">No companies available.</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">Applied Drives</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Drive Name</th>
+                                    <th>Company</th>
+                                    <th>Applied Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if applications %}
+                                    {% for app in applications %}
+                                    <tr>
+                                        <td>{{ app.drive.id }}</td>
+                                        <td>{{ app.drive.drive_name }}</td>
+                                        <td>{{ app.drive.company.company_name }}</td>
+                                        <td>{{ app.application_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            {% if app.status == 'selected' %}
+                                                <span class="badge bg-success">Selected</span>
+                                            {% elif app.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% elif app.status == 'shortlisted' %}
+                                                <span class="badge bg-info text-dark">Shortlisted</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Applied</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="/student/drive/{{ app.drive.id }}/{{ student.id }}" 
+                                               class="btn btn-outline-dark btn-sm">View Details</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="6" class="text-center text-muted">No applications yet.</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
