@@ -345,8 +345,6 @@ def update_student_profile(student_id):
 
     if 'resume' in request.files:
         file = request.files['resume']
-        
-        # Check if user selected a file
         if file.filename != '': 
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
