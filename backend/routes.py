@@ -155,7 +155,7 @@ def blacklist_student(student_id, name):
         db.session.commit()
     return redirect(url_for('admin_dashboard', name=name))
 
-app.route("/admin/search", methods=["GET"])
+@app.route("/admin/search", methods=["GET"])
 def admin_search():
     query = request.args.get('q', '').strip()
     admin_name = request.args.get('name', 'Admin')
@@ -167,11 +167,12 @@ def admin_search():
                            name=admin_name,
                            role="admin",
                            companies=companies,
-                           students=students,
-                           pending_companies=[],
+                           students=students, 
+                           pending_companies=[],  
                            ongoing_drives=[],
                            student_applications=[],
                            search_query=query) 
+
 
 
 
